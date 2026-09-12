@@ -114,7 +114,7 @@
 
     <!-- Input API Key yang Aman -->
     <div class="input-group">
-        <input type="password" id="apiKey" placeholder="Masukkan API Key Gemini Baru..." onchange="saveApiKey()" />
+        <input type="password" id="apiKey" placeholder="Masukkan API Key Gemini Anda..." onchange="saveApiKey()" />
     </div>
     
     <!-- Area Chat -->
@@ -132,7 +132,6 @@
 <script>
 const chatHistory = [];
 
-// Otomatis isi API Key jika pernah disimpan sebelumnya
 window.onload = function() {
     const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) {
@@ -172,7 +171,8 @@ async function sendMessage() {
     const loadingDiv = appendMessage('Memproses jawaban...', 'model-message');
     submitBtn.disabled = true;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    // Menggunakan endpoint gemini-3.6-flash
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
     try {
         const response = await fetch(url, {
