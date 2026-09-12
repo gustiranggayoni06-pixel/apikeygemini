@@ -120,8 +120,8 @@ async function generateText() {
     resultDiv.innerText = 'Mencari informasi dan memproses jawaban...';
     submitBtn.disabled = true;
 
-    // Endpoint API Gemini 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    // URL menggunakan model gemini-3.6-flash
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
     try {
         const response = await fetch(url, {
@@ -129,13 +129,12 @@ async function generateText() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            // POTONGAN KODE TADI DITARUH DI SINI:
             body: JSON.stringify({
                 contents: [{
                     parts: [{ text: prompt }]
                 }],
                 tools: [
-                    { google_search: {} } // Mengaktifkan pencarian web otomatis oleh Gemini
+                    { google_search: {} }
                 ]
             })
         });
@@ -154,6 +153,7 @@ async function generateText() {
         submitBtn.disabled = false;
     }
 }
+
 </script>
 
 </body>
