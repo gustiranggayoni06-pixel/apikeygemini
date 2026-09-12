@@ -32,6 +32,16 @@
             color: #1a73e8;
             text-align: center;
         }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 13px;
+        }
         .chat-box {
             flex: 1;
             overflow-y: auto;
@@ -101,8 +111,13 @@
 
 <div class="container">
     <h2>Chat Gemini AI</h2>
+
+    <!-- Input API Key (Tersimpan otomatis di Browser) -->
+    <div class="input-group">
+        <input type="password" id="apiKey" placeholder="Masukkan API Key Gemini Baru Anda..." onchange="saveApiKey()" />
+    </div>
     
-    <!-- Area Riwayat Percakapan -->
+    <!-- Area Chat -->
     <div id="chatBox" class="chat-box">
         <div class="message model-message">Halo! Ada yang bisa saya bantu hari ini?</div>
     </div>
@@ -115,43 +130,49 @@
 </div>
 
 <script>
-// ==========================================
-// PASTE API KEY GEMINI ANDA DI BAWAH INI
-// ==========================================
-const API_KEY = "AQ.Ab8RN6IPSF2MZGSpjkhGuEvHjk1Dc1dawSJE5mUPdyaWc3gCLQ"; 
-
-// Array untuk menyimpan riwayat percakapan
 const chatHistory = [];
 
+// Memuat API Key otomatis dari penyimpanan HP saat web dibuka
+window.onload = function() {
+    const savedKey = localStorage.getItem('gemini_api_key');
+    if (savedKey) {
+        document.getElementById('apiKey').value = savedKey;
+    }
+};
+
+function saveApiKey() {
+    const key = document.getElementById('apiKey').value.trim();
+    localStorage.setItem('gemini_api_key', key);
+}
+
 async function sendMessage() {
+    let apiKey = document.getElementById('apiKey').value.trim();
     const promptInput = document.getElementById('prompt');
     const promptText = promptInput.value.trim();
     const chatBox = document.getElementById('chatBox');
     const submitBtn = document.getElementById('submitBtn');
 
-    if (!promptText) return;
-
-    if (API_KEY === "ISI_API_KEY_ANDA_DI_SINI" || !API_KEY) {
-        alert('Harap isi variabel API_KEY dalam kodingan JavaScript terlebih dahulu!');
+    if (!apiKey) {
+        alert('Harap masukkan API Key Gemini Anda di kolom atas!');
         return;
     }
 
-    // 1. Tampilkan pesan User ke layar
+    if (!promptText) return;
+
+    saveApiKey();
+
     appendMessage(promptText, 'user-message');
     promptInput.value = '';
 
-    // 2. Tambahkan pesan User ke riwayat percakapan API
     chatHistory.push({
         role: "user",
         parts: [{ text: promptText }]
     });
 
-    // 3. Tampilkan indikator loading
     const loadingDiv = appendMessage('Memproses jawaban...', 'model-message');
     submitBtn.disabled = true;
 
-    // Endpoint API Gemini
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     try {
         const response = await fetch(url, {
@@ -160,7 +181,7 @@ async function sendMessage() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                contents: chatHistory // Mengirimkan seluruh riwayat obrolan
+                contents: chatHistory
             })
         });
 
@@ -168,18 +189,15 @@ async function sendMessage() {
 
         if (response.ok) {
             const botResponse = data.candidates[0].content.parts[0].text;
-            
-            // Perbarui teks loading dengan jawaban asli
             loadingDiv.innerText = botResponse;
 
-            // Simpan jawaban AI ke dalam riwayat percakapan
             chatHistory.push({
                 role: "model",
                 parts: [{ text: botResponse }]
             });
         } else {
             loadingDiv.innerText = `Error: ${data.error ? data.error.message : 'Gagal terhubung ke API'}`;
-            chatHistory.pop(); // Hapus pesan user terakhir dari history jika error
+            chatHistory.pop();
         }
     } catch (error) {
         loadingDiv.innerText = `Terjadi kesalahan koneksi: ${error.message}`;
@@ -200,7 +218,6 @@ function appendMessage(text, className) {
     return messageDiv;
 }
 
-// BIsa mengirim pesan dengan menekan Enter
 document.getElementById('prompt').addEventListener('keypress', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
