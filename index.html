@@ -9,12 +9,13 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        body: JSON.stringify({
-    contents: [{
-        parts: [{ text: prompt }]
-    }]
-})
-
+        body {
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
         .container {
             width: 100%;
             max-width: 650px;
@@ -116,11 +117,11 @@ async function generateText() {
         return;
     }
 
-    resultDiv.innerText = 'Mencari informasi dan memproses jawaban...';
+    resultDiv.innerText = 'Memproses jawaban...';
     submitBtn.disabled = true;
 
-    // URL menggunakan model gemini-3.6-flash
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+    // Menggunakan model gemini-2.5-flash
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
         const response = await fetch(url, {
@@ -131,10 +132,7 @@ async function generateText() {
             body: JSON.stringify({
                 contents: [{
                     parts: [{ text: prompt }]
-                }],
-                tools: [
-                    { google_search: {} }
-                ]
+                }]
             })
         });
 
@@ -152,7 +150,6 @@ async function generateText() {
         submitBtn.disabled = false;
     }
 }
-
 </script>
 
 </body>
