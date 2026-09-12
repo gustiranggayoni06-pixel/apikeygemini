@@ -168,10 +168,10 @@ async function sendMessage() {
         parts: [{ text: promptText }]
     });
 
-    const loadingDiv = appendMessage('Memproses jawaban...', 'model-message');
+    const loadingDiv = appendMessage('Mencari informasi di internet...', 'model-message');
     submitBtn.disabled = true;
 
-    // Menggunakan endpoint gemini-3.6-flash
+    // Menggunakan model gemini-3.6-flash
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
     try {
@@ -181,7 +181,10 @@ async function sendMessage() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                contents: chatHistory
+                contents: chatHistory,
+                tools: [
+                    { google_search: {} } // Mengaktifkan Pencarian Web Otomatis
+                ]
             })
         });
 
