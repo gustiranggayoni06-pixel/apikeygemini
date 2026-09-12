@@ -117,12 +117,11 @@ async function generateText() {
         return;
     }
 
-    // Ubah tampilan UI saat memproses
-    resultDiv.innerText = 'Memproses jawaban...';
+    resultDiv.innerText = 'Mencari informasi dan memproses jawaban...';
     submitBtn.disabled = true;
 
-    // URL Endpoint API Gemini (Menggunakan model gemini-2.5-flash)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+    // Endpoint API Gemini 
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
         const response = await fetch(url, {
@@ -130,21 +129,23 @@ async function generateText() {
             headers: {
                 'Content-Type': 'application/json'
             },
+            // POTONGAN KODE TADI DITARUH DI SINI:
             body: JSON.stringify({
                 contents: [{
                     parts: [{ text: prompt }]
-                }]
+                }],
+                tools: [
+                    { google_search: {} } // Mengaktifkan pencarian web otomatis oleh Gemini
+                ]
             })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            // Ambil teks hasil respons dari Gemini
             const textResponse = data.candidates[0].content.parts[0].text;
             resultDiv.innerText = textResponse;
         } else {
-            // Tampilkan pesan error dari API jika ada masalah
             resultDiv.innerText = `Error: ${data.error ? data.error.message : 'Gagal terhubung ke API'}`;
         }
     } catch (error) {
