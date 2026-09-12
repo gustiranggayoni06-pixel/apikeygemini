@@ -112,9 +112,9 @@
 <div class="container">
     <h2>Chat Gemini AI</h2>
 
-    <!-- Input API Key (Tersimpan otomatis di Browser) -->
+    <!-- Input API Key yang Aman -->
     <div class="input-group">
-        <input type="password" id="apiKey" placeholder="Masukkan API Key Gemini Baru Anda..." onchange="saveApiKey()" />
+        <input type="password" id="apiKey" placeholder="Masukkan API Key Gemini Baru..." onchange="saveApiKey()" />
     </div>
     
     <!-- Area Chat -->
@@ -132,7 +132,7 @@
 <script>
 const chatHistory = [];
 
-// Memuat API Key otomatis dari penyimpanan HP saat web dibuka
+// Otomatis isi API Key jika pernah disimpan sebelumnya
 window.onload = function() {
     const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) {
@@ -153,7 +153,7 @@ async function sendMessage() {
     const submitBtn = document.getElementById('submitBtn');
 
     if (!apiKey) {
-        alert('Harap masukkan API Key Gemini Anda di kolom atas!');
+        alert('Harap masukkan API Key Gemini Anda pada kolom paling atas!');
         return;
     }
 
