@@ -20,42 +20,69 @@
             width: 100%;
             max-width: 650px;
             background: #ffffff;
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
         }
         h2 {
             margin-top: 0;
             color: #1a73e8;
             text-align: center;
         }
-        .input-group {
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f8f9fa;
             margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .user-message {
+            align-self: flex-end;
+            background-color: #1a73e8;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+        .model-message {
+            align-self: flex-start;
+            background-color: #e9ecef;
             color: #333;
+            border-bottom-left-radius: 2px;
         }
-        input[type="text"], textarea {
-            width: 100%;
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        textarea {
+            flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 14px;
-        }
-        textarea {
-            height: 100px;
-            resize: vertical;
+            resize: none;
+            height: 50px;
         }
         button {
-            width: 100%;
             background-color: #1a73e8;
             color: white;
             border: none;
-            padding: 12px;
-            font-size: 16px;
+            padding: 0 20px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
@@ -68,61 +95,63 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
-        .result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-left: 4px solid #1a73e8;
-            border-radius: 4px;
-            white-space: pre-wrap;
-            min-height: 50px;
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Tanya Gemini AI</h2>
+    <h2>Chat Gemini AI</h2>
     
-    <div class="input-group">
-        <label for="apiKey">Masukkan API Key Gemini Anda:</label>
-        <input type="text" id="apiKey" placeholder="AIzaSy..." />
+    <!-- Area Riwayat Percakapan -->
+    <div id="chatBox" class="chat-box">
+        <div class="message model-message">Halo! Ada yang bisa saya bantu hari ini?</div>
     </div>
 
-    <div class="input-group">
-        <label for="prompt">Pertanyaan / Perintah:</label>
-        <textarea id="prompt" placeholder="Tanyakan apa saja pada Gemini..."></textarea>
+    <!-- Area Input Pesan -->
+    <div class="input-area">
+        <textarea id="prompt" placeholder="Tulis pesan..."></textarea>
+        <button id="submitBtn" onclick="sendMessage()">Kirim</button>
     </div>
-
-    <button id="submitBtn" onclick="generateText()">Kirim Pertanyaan</button>
-
-    <h3>Hasil:</h3>
-    <div id="result" class="result-box">Hasil jawaban akan muncul di sini...</div>
 </div>
 
 <script>
-async function generateText() {
-    const apiKey = document.getElementById('apiKey').value.trim();
-    const prompt = document.getElementById('prompt').value.trim();
-    const resultDiv = document.getElementById('result');
+// ==========================================
+// PASTE API KEY GEMINI ANDA DI BAWAH INI
+// ==========================================
+const API_KEY = "AQ.Ab8RN6IPSF2MZGSpjkhGuEvHjk1Dc1dawSJE5mUPdyaWc3gCLQ"; 
+
+// Array untuk menyimpan riwayat percakapan
+const chatHistory = [];
+
+async function sendMessage() {
+    const promptInput = document.getElementById('prompt');
+    const promptText = promptInput.value.trim();
+    const chatBox = document.getElementById('chatBox');
     const submitBtn = document.getElementById('submitBtn');
 
-    if (!apiKey) {
-        alert('Harap masukkan API Key Gemini Anda!');
+    if (!promptText) return;
+
+    if (API_KEY === "ISI_API_KEY_ANDA_DI_SINI" || !API_KEY) {
+        alert('Harap isi variabel API_KEY dalam kodingan JavaScript terlebih dahulu!');
         return;
     }
 
-    if (!prompt) {
-        alert('Harap masukkan pertanyaan atau perintah!');
-        return;
-    }
+    // 1. Tampilkan pesan User ke layar
+    appendMessage(promptText, 'user-message');
+    promptInput.value = '';
 
-    resultDiv.innerText = 'Memproses jawaban...';
+    // 2. Tambahkan pesan User ke riwayat percakapan API
+    chatHistory.push({
+        role: "user",
+        parts: [{ text: promptText }]
+    });
+
+    // 3. Tampilkan indikator loading
+    const loadingDiv = appendMessage('Memproses jawaban...', 'model-message');
     submitBtn.disabled = true;
 
-    // Menggunakan model gemini-3.6-flash sesuai rekomendasi API
-    // Ganti baris URL dengan ini:
-const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    // Endpoint API Gemini
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
     try {
         const response = await fetch(url, {
@@ -131,26 +160,53 @@ const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }]
+                contents: chatHistory // Mengirimkan seluruh riwayat obrolan
             })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            const textResponse = data.candidates[0].content.parts[0].text;
-            resultDiv.innerText = textResponse;
+            const botResponse = data.candidates[0].content.parts[0].text;
+            
+            // Perbarui teks loading dengan jawaban asli
+            loadingDiv.innerText = botResponse;
+
+            // Simpan jawaban AI ke dalam riwayat percakapan
+            chatHistory.push({
+                role: "model",
+                parts: [{ text: botResponse }]
+            });
         } else {
-            resultDiv.innerText = `Error: ${data.error ? data.error.message : 'Gagal terhubung ke API'}`;
+            loadingDiv.innerText = `Error: ${data.error ? data.error.message : 'Gagal terhubung ke API'}`;
+            chatHistory.pop(); // Hapus pesan user terakhir dari history jika error
         }
     } catch (error) {
-        resultDiv.innerText = `Terjadi kesalahan koneksi: ${error.message}`;
+        loadingDiv.innerText = `Terjadi kesalahan koneksi: ${error.message}`;
+        chatHistory.pop();
     } finally {
         submitBtn.disabled = false;
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 }
+
+function appendMessage(text, className) {
+    const chatBox = document.getElementById('chatBox');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${className}`;
+    messageDiv.innerText = text;
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return messageDiv;
+}
+
+// BIsa mengirim pesan dengan menekan Enter
+document.getElementById('prompt').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
 </script>
 
 </body>
