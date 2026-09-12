@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asisten AI Gemini</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: #1a73e8;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            width: 100%;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #1557b0;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #1a73e8;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Tanya Gemini AI</h2>
+    
+    <div class="input-group">
+        <label for="apiKey">Masukkan API Key Gemini Anda:</label>
+        <input type="text" id="apiKey" placeholder="AIzaSy..." />
+    </div>
+
+    <div class="input-group">
+        <label for="prompt">Pertanyaan / Perintah:</label>
+        <textarea id="prompt" placeholder="Tanyakan apa saja pada Gemini..."></textarea>
+    </div>
+
+    <button id="submitBtn" onclick="generateText()">Kirim Pertanyaan</button>
+
+    <h3>Hasil:</h3>
+    <div id="result" class="result-box">Hasil jawaban akan muncul di sini...</div>
+</div>
+
+<script>
+async function generateText() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const prompt = document.getElementById('prompt').value.trim();
+    const resultDiv = document.getElementById('result');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (!apiKey) {
+        alert('Harap masukkan API Key Gemini Anda!');
+        return;
+    }
+
+    if (!prompt) {
+        alert('Harap masukkan pertanyaan atau perintah!');
+        return;
+    }
+
+    // Ubah tampilan UI saat memproses
+    resultDiv.innerText = 'Memproses jawaban...';
+    submitBtn.disabled = true;
+
+    // URL Endpoint API Gemini (Menggunakan model gemini-2.5-flash)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: prompt }]
+                }]
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Ambil teks hasil respons dari Gemini
+            const textResponse = data.candidates[0].content.parts[0].text;
+            resultDiv.innerText = textResponse;
+        } else {
+            // Tampilkan pesan error dari API jika ada masalah
+            resultDiv.innerText = `Error: ${data.error ? data.error.message : 'Gagal terhubung ke API'}`;
+        }
+    } catch (error) {
+        resultDiv.innerText = `Terjadi kesalahan koneksi: ${error.message}`;
+    } finally {
+        submitBtn.disabled = false;
+    }
+}
+</script>
+
+</body>
+</html>
